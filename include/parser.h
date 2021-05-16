@@ -9,8 +9,8 @@ struct abs_tree{
   enum tree_token token;
   union{
     char *str_data;
-    int64_t *int_data;
-    double *double_data;
+    int64_t int_data;
+    double double_data;
   }data;
   struct abs_tree *node;
 };

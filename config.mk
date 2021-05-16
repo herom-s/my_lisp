@@ -1,7 +1,7 @@
-CC = clang
+CC = gcc
 
-DEBUGGER = lldb
-CDEBUG = -g -DDEBUG -O0 # Remember to remove debugg flags
+DEBUGGER = gdb
+CDEBUG = -g2 -DDEBUG -O0 # Remember to remove debugg flags
 CFLAGS = -std=c89 -Wall -Wextra  -pedantic -I$(IDIR) $(CDEBUG)
 
 SDIR = ./src

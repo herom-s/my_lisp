@@ -28,7 +28,7 @@ void abst_print_tree(struct abs_tree *tree) {
 }
 
 void abst_init(struct abs_tree **tree) {
-  struct abs_tree *tmp = (struct abs_tree *)malloc(sizeof(struct abs_tree));
+  struct abs_tree *tmp = (struct abs_tree *) malloc(sizeof(struct abs_tree));
   if (!tmp)
     exit(EXIT_FAILURE);
   tmp->token = empty;
@@ -98,13 +98,13 @@ void abst_destroy(struct abs_tree *tree) {
 struct abs_tree *parser(char *input) {
   struct abs_tree *parsed_str = NULL;
   enum tree_token token = program_start;
-  size_t i = 0;
 
   abst_init(&parsed_str);
 
+  parsed_str->token = token;
+
   while ((token = get_token(input++))!= program_end){
     /* printf("input=%s token=%s i=%lu ic=%c\n", input, print_token(token), i, *input); */
-    i++;
     switch (token) {
     case list_start:
       abst_add(&parsed_str, token, NULL); break;
@@ -114,7 +114,6 @@ struct abs_tree *parser(char *input) {
       int64_t numb = 0;
       char *end;
       input--;
-      printf("\ninput = %s", input);
       numb = strtoll(input, &end, 10);
       input = end;
       abst_add(&parsed_str, token, (void *)&numb);
@@ -143,7 +142,9 @@ struct abs_tree *parser(char *input) {
     case op_minu:
       abst_add(&parsed_str, token, NULL); break;
     }
-    /* token = get_token(input++); */
   }
+
+  abst_add(&parsed_str, token, NULL);
+
   return parsed_str;
 }

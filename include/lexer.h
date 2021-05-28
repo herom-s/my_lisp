@@ -10,6 +10,8 @@ enum tree_token{
   op_minu,
   op_divi,
   op_mult,
+  decrement,
+  increment,
   num,
   neg_num,
   flo_num,

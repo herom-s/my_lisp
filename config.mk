@@ -5,13 +5,13 @@ CDEBUG = -g2 -DDEBUG -O0 # Remember to remove debugg flags
 CFLAGS = -std=c89 -Wall -Wextra  -pedantic -I$(IDIR) $(CDEBUG)
 
 SDIR = ./src
-SRCS_N = main.c parser.c lexer.c input.c eval.c
+SRCS_N = main.c parser.c lexer.c input.c eval.c print.c
 SRCS = $(patsubst %,$(SDIR)/%,$(SRCS_N))
 
 LIBS =
 IDIR = ./include
 
-DEPS_N = lexer.h parser.h eval.h input.h
+DEPS_N = lexer.h parser.h eval.h input.h print.h
 DEPS = $(patsubst %,$(IDIR)/%,$(DEPS_N))
 
 

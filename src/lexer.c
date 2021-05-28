@@ -13,6 +13,8 @@ char *print_token(enum tree_token token) {
   case op_minu: tmp = "op_minu"; break;
   case op_divi: tmp = "op_divi"; break;
   case op_mult: tmp = "op_mult"; break;
+  case decrement: tmp = "decrement"; break;
+  case increment: tmp = "increment"; break;
   case num: tmp = "num"; break;
   case neg_num: tmp = "neg_num"; break;
   case flo_num: tmp = "flo_num"; break;
@@ -28,8 +30,6 @@ enum tree_token get_token(char *input){
   enum tree_token token, ahead_token;
   token = program_end;
   ahead_token = program_end;
-
-  printf("get_token_Input = %s\n", input);
 
   switch (*input) {
   case '(': token = list_start; break;
@@ -49,6 +49,10 @@ enum tree_token get_token(char *input){
     if (ahead_token == num) {
       token = neg_num;
     }else if(ahead_token == space){
+      token = op_minu;
+    }else if(ahead_token == op_minu){
+      token = decrement;
+    }else{
       token = op_minu;
     }
     break;

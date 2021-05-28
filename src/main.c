@@ -6,6 +6,7 @@
 #include "../include/parser.h"
 #include "../include/input.h"
 #include "../include/eval.h"
+#include "../include/print.h"
 
 int main(int argv, char **argc){
   struct abs_tree *input_abs;
@@ -19,9 +20,10 @@ int main(int argv, char **argc){
       exit(EXIT_SUCCESS);
 
     input_abs = parser(input);
-    abst_print_tree(input_abs);
+    /* abst_print_tree(input_abs); */
 
-    eval(input_abs);
+    print_res(eval(input_abs));
+
   }
 
   return EXIT_SUCCESS;

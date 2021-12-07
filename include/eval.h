@@ -16,4 +16,6 @@ struct eval_result {
 
 struct eval_result *eval(struct abs_tree *parsed_abst);
 void eval_add_op(struct abs_tree ***t, struct eval_result *e_res);
+void eval_minu_op(struct abs_tree ***t, struct eval_result *e_res);
+void eval_list(struct abs_tree ***t, struct eval_result *e_res);
 #endif

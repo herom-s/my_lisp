@@ -27,15 +27,15 @@ char *get_line() {
     free(res);
     return NULL;
   }
-  res[INPUT_BUFF_SIZE - 1] = '\0';
+  res[bytes_read] = '\0';
   size_t len = strlen(res);
-  if (len > 0 && res[len - 1] == '\n') {
-    res[len - 1] = '\0';
+  while (len > 0 && (res[len - 1] == '\n' || res[len - 1] == '\r')) {
+    res[--len] = '\0';
   }
   return res;
 }
 
 void prompt(char *promp_string, char **input) {
-  fprintf(stdout, "%s", promp_string);
+  write(1, promp_string, strlen(promp_string));
   *input = get_line();
 }

@@ -12,7 +12,7 @@ void abst_print_data(struct abs_tree *tree) {
   switch (tree->token) {
   case num:
   case neg_num:
-    printf("%lld", tree->data.int_data);
+    printf("%ld", tree->data.int_data);
     break;
   case flo_num:
     printf("%lf", tree->data.double_data);

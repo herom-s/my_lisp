@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
   while (true) {
     prompt("MYLisp> ", &input);
 
-    if (input && strcmp(input, "exit\n") == 0) {
+    if (input && strcmp(input, "exit") == 0) {
       free(input);
       exit(EXIT_SUCCESS);
     }

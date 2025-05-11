@@ -14,7 +14,7 @@ SRCS = $(wildcard $(SDIR)/*.c)
 OBJS = $(patsubst $(SDIR)/%.c,$(ODIR)/%.o,$(SRCS))
 DEPS = $(OBJS:.o=.d)
 
-CFLAGS = -std=c99 -Wall -Wextra -pedantic -I$(IDIR) -O2
+CFLAGS = -std=gnu99 -Wall -Wextra -pedantic -I$(IDIR) -O2
 
 DEBUG ?= 0
 ifeq ($(DEBUG),1)

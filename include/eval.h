@@ -1,7 +1,7 @@
 #ifndef EVAL_H
 #define EVAL_H
 #include "../include/parser.h"
-#include <sys/types.h>
+#include <stdint.h>
 
 enum res_type { int_type = 0, double_type, str_type };
 
@@ -15,7 +15,7 @@ struct eval_result {
 };
 
 struct eval_result *eval(struct abs_tree *parsed_abst);
-void eval_add_op(struct abs_tree ***t, struct eval_result *e_res);
-void eval_minu_op(struct abs_tree ***t, struct eval_result *e_res);
-void eval_list(struct abs_tree ***t, struct eval_result *e_res);
+void eval_add_op(struct abs_tree **t, struct eval_result *e_res);
+void eval_minu_op(struct abs_tree **t, struct eval_result *e_res);
+void eval_list(struct abs_tree **t, struct eval_result *e_res);
 #endif

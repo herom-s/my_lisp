@@ -1,25 +1,62 @@
 .POSIX:
 
-include config.mk
+CC = gcc
+DEBUGGER = gdb
+CFLAGS = -std=c99 -Wall -Wextra -pedantic -I$(IDIR)
+CDEBUGFLAGS = -g2 -DDEBUG -O0
+SDIR = src
+IDIR = include
+ODIR = obj
+BDIR = bin
+BIN = $(BDIR)/my_lisp
 
-all: create_dirs $(BIN)
+SRCS = $(wildcard $(SDIR)/*.c)
+OBJS = $(patsubst $(SDIR)/%.c,$(ODIR)/%.o,$(SRCS))
+DEPS = $(OBJS:.o=.d)
 
-clean:
-	rm -rv $(ODIR) $(BDIR)
+CFLAGS = -std=c99 -Wall -Wextra -pedantic -I$(IDIR) -O2
 
-create_dirs:
-	@mkdir -p $(ODIR) $(BDIR)
+DEBUG ?= 0
+ifeq ($(DEBUG),1)
+	CFLAGS += $(CDEBUGFLAGS)
+endif
 
-run:
+RM = rm -f
+RMDIR = rm -rf
+
+all: $(BIN)
+
+$(BIN): $(OBJS) | $(BDIR)
+	$(CC) $^ -o $@ $(CFLAGS) $(LIBS)
+
+$(ODIR)/%.o: $(SDIR)/%.c | $(ODIR)
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+$(ODIR):
+	@mkdir -p $@
+
+$(BDIR):
+	@mkdir -p $@
+
+run: $(BIN)
 	$(BIN)
 
-debugg:
+debugg: $(BIN)
 	$(DEBUGGER) $(BIN)
 
-$(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+clean:
+	$(RM) $(BIN)
 
-$(BIN): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(CFLAGS) $(LIBS)
+cleanodir:
+	$(RMDIR) $(ODIR)
 
-.PHONY: create_dirs clean
+cleanbdir:
+	$(RMDIR) $(BDIR)
+
+fclean: clean cleanodir cleanbdir
+
+re: fclean all
+
+-include $(DEPS)
+
+.PHONY: all run debugg clean cleanodir cleanbdir fclean re

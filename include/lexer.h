@@ -1,7 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-enum tree_token{
+enum tree_token {
   program_start,
   program_end,
   list_start,
@@ -17,6 +17,8 @@ enum tree_token{
   flo_num,
   string,
   new_line,
+  point,
+  comma,
   space,
   error_token,
   empty

@@ -1,14 +1,18 @@
 #include "../include/parser.h"
 #include "../include/lexer.h"
+#include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void abst_print_data(struct abs_tree *tree) {
+  if (!tree)
+    return;
   switch (tree->token) {
   case num:
   case neg_num:
-    printf("%ld", tree->data.int_data);
+    printf("%lld", tree->data.int_data);
     break;
   case flo_num:
     printf("%lf", tree->data.double_data);
@@ -16,19 +20,39 @@ void abst_print_data(struct abs_tree *tree) {
   case string:
     printf("%s", (char *)tree->data.str_data);
     break;
+  case op_plus:
+    printf("+");
+    break;
+  case op_minu:
+    printf("-");
+    break;
+  case op_divi:
+    printf("/");
+    break;
+  case op_mult:
+    printf("*");
+    break;
+  default:
+    break;
   }
 }
 
 void abst_print_tree(struct abs_tree *tree) {
-  printf("Tree_a:%p:token:%s:Data: ", (void *)tree, print_token(tree->token));
+  if (!tree) {
+    printf("(null tree)\n");
+    return;
+  }
+
+  printf("Tree:%p token:%s Data: ", (void *)tree, print_token(tree->token));
   abst_print_data(tree);
   printf("\n");
-  if(tree->node)
+
+  if (tree->node)
     abst_print_tree(tree->node);
 }
 
 void abst_init(struct abs_tree **tree) {
-  struct abs_tree *tmp = (struct abs_tree *) malloc(sizeof(struct abs_tree));
+  struct abs_tree *tmp = (struct abs_tree *)malloc(sizeof(struct abs_tree));
   if (!tmp)
     exit(EXIT_FAILURE);
   tmp->token = empty;
@@ -37,15 +61,10 @@ void abst_init(struct abs_tree **tree) {
   *tree = tmp;
 }
 
-/*
-	abst_add is bugged need to work more on it,
-	trying to add always to the end of lis and
-	checking for a null at end dont work, i need
-	make a way to check if the currety tree in
-	fuction is not null and the next node is not
-	null i need head store pointer
-*/
 void abst_add(struct abs_tree **tree, enum tree_token token, void *data) {
+  if (!tree)
+    return;
+
   struct abs_tree **tracer = tree;
   struct abs_tree *new = NULL;
   abst_init(&new);
@@ -55,96 +74,213 @@ void abst_add(struct abs_tree **tree, enum tree_token token, void *data) {
   switch (token) {
   case num:
   case neg_num:
-    new->data.int_data = *(int64_t *) data;
+    new->data.int_data = *(int64_t *)data;
     break;
   case flo_num:
     new->data.double_data = *(double *)data;
     break;
   case string:
-    new->data.str_data = (char *)data;
+    new->data.str_data = data ? strdup((char *)data) : NULL;
+    break;
+  case op_plus:
+  case op_minu:
+  case op_divi:
+  case op_mult:
     break;
   default:
     if (data) {
-      new->data.str_data = "ERROR: IN Data Token";
+      new->data.str_data = strdup("ERROR: IN Data Token");
     }
     break;
   }
 
-  while ((*tracer)){
+  while ((*tracer)) {
     tracer = &(*tracer)->node;
   }
 
-
-  new->node = *tracer;
   *tracer = new;
-
 }
 
 void abst_remove_node(struct abs_tree *tree) {
-  if (tree->token == string)
+  if (!tree)
+    return;
+
+  if (tree->token == string && tree->data.str_data)
     free(tree->data.str_data);
 
-  tree->token = empty;
   free(tree);
 }
 
 void abst_destroy(struct abs_tree *tree) {
   if (tree) {
-    abst_destroy(tree->node);
+    struct abs_tree *next = tree->node;
     abst_remove_node(tree);
+    abst_destroy(next);
   }
 }
 
+void parse_number(char **input, struct abs_tree **current) {
+  if (!input || !*input || !current || !*current)
+    return;
+
+  int negative = 0;
+  if (**input == '-') {
+    negative = 1;
+    (*input)++;
+  }
+
+  int64_t value = 0;
+  while (isdigit(**input)) {
+    value = value * 10 + (**input - '0');
+    (*input)++;
+  }
+
+  if (negative) {
+    value = -value;
+    (*current)->token = neg_num;
+  } else {
+    (*current)->token = num;
+  }
+
+  (*current)->data.int_data = value;
+}
+
+struct abs_tree *parse_list(char **input) {
+  if (!input || !*input)
+    return NULL;
+
+  struct abs_tree *list_node = NULL;
+  abst_init(&list_node);
+  list_node->token = list_start;
+
+  (*input)++;
+
+  while (**input && isspace(**input)) {
+    (*input)++;
+  }
+
+  if (**input == ')') {
+    (*input)++;
+    struct abs_tree *end_node = NULL;
+    abst_init(&end_node);
+    end_node->token = list_end;
+    list_node->node = end_node;
+    return list_node;
+  }
+
+  struct abs_tree *op_node = NULL;
+  abst_init(&op_node);
+
+  if (**input == '+') {
+    op_node->token = op_plus;
+    (*input)++;
+  } else if (**input == '-') {
+    op_node->token = op_minu;
+    (*input)++;
+  } else if (**input == '*') {
+    op_node->token = op_mult;
+    (*input)++;
+  } else if (**input == '/') {
+    op_node->token = op_divi;
+    (*input)++;
+  } else {
+    printf("ERROR: Expected operator at the beginning of list\n");
+    abst_destroy(list_node);
+    abst_destroy(op_node);
+    return NULL;
+  }
+
+  list_node->node = op_node;
+  struct abs_tree **current = &(op_node->node);
+
+  while (**input && **input != ')') {
+    while (**input && isspace(**input)) {
+      (*input)++;
+    }
+
+    if (**input == ')')
+      break;
+
+    if (**input == '(') {
+      struct abs_tree *nested = parse_list(input);
+      if (nested) {
+        *current = nested;
+        while (*current) {
+          current = &((*current)->node);
+        }
+      }
+      continue;
+    }
+
+    struct abs_tree *arg_node = NULL;
+    abst_init(&arg_node);
+
+    if (**input == '-' || isdigit(**input)) {
+      parse_number(input, &arg_node);
+    } else {
+      printf("ERROR: Unrecognized token: %c\n", **input);
+      abst_destroy(arg_node);
+      (*input)++;
+      continue;
+    }
+
+    *current = arg_node;
+    current = &(arg_node->node);
+  }
+
+  if (**input == ')') {
+    (*input)++;
+  }
+
+  struct abs_tree *end_node = NULL;
+  abst_init(&end_node);
+  end_node->token = list_end;
+  *current = end_node;
+
+  return list_node;
+}
+
 struct abs_tree *parser(char *input) {
-  struct abs_tree *parsed_str = NULL;
-  enum tree_token token = program_start;
+  if (!input)
+    return NULL;
 
-  abst_init(&parsed_str);
+  struct abs_tree *root = NULL;
+  abst_init(&root);
+  root->token = program_start;
 
-  parsed_str->token = token;
+  struct abs_tree **current = &(root->node);
 
-  while ((token = get_token(input++))!= program_end){
-    /* printf("input=%s token=%s i=%lu ic=%c\n", input, print_token(token), i, *input); */
-    switch (token) {
-    case list_start:
-      abst_add(&parsed_str, token, NULL); break;
-    case list_end:
-      abst_add(&parsed_str, token, NULL); break;
-    case num: {
-      int64_t numb = 0;
-      char *end;
-      input--;
-      numb = strtoll(input, &end, 10);
-      input = end;
-      abst_add(&parsed_str, token, (void *)&numb);
-      break;
+  while (*input && isspace(*input)) {
+    input++;
+  }
+
+  while (*input) {
+    if (*input == '(') {
+      struct abs_tree *list = parse_list(&input);
+      if (list) {
+        *current = list;
+        while (*current) {
+          current = &((*current)->node);
+        }
+      }
+    } else if (isdigit(*input) || (*input == '-' && isdigit(*(input + 1)))) {
+      struct abs_tree *num_node = NULL;
+      abst_init(&num_node);
+      parse_number(&input, &num_node);
+      *current = num_node;
+      current = &(num_node->node);
+    } else {
+      input++;
     }
-    case neg_num: {
-      int64_t numb = 0;
-      char *end;
-      input--;
-      numb = strtoll(input, &end, 10);
-      input = end;
-      abst_add(&parsed_str, token, (void *)&numb);
-      break;
-    }
-    case flo_num: {
-      double fnum;
-      char *end;
-      input--;
-      fnum = strtod(input, &end);
-      input = end;
-      abst_add(&parsed_str, token, (void *)&fnum);
-      break;
-    }
-    case op_plus:
-      abst_add(&parsed_str, token, NULL); break;
-    case op_minu:
-      abst_add(&parsed_str, token, NULL); break;
+    while (*input && isspace(*input)) {
+      input++;
     }
   }
 
-  abst_add(&parsed_str, token, NULL);
+  struct abs_tree *end_node = NULL;
+  abst_init(&end_node);
+  end_node->token = program_end;
+  *current = end_node;
 
-  return parsed_str;
+  return root;
 }

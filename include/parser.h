@@ -1,17 +1,18 @@
 #ifndef PARSER_H
 #define PARSER_H
-#include <sys/types.h>
-#include <stdlib.h>
 #include "../include/lexer.h"
+#include <stddef.h>
+#include <stdint.h>
 
-struct abs_tree{
-  u_int64_t line;
+
+struct abs_tree {
+  size_t line;
   enum tree_token token;
-  union{
+  union {
     char *str_data;
     int64_t int_data;
     double double_data;
-  }data;
+  } data;
   struct abs_tree *node;
 };
 
@@ -23,6 +24,7 @@ void abst_remove_node(struct abs_tree *tree);
 void abst_print_data(struct abs_tree *tree);
 void abst_print_tree(struct abs_tree *tree);
 
+struct abs_tree *parse_list(char **input);
 struct abs_tree *parser(char *input);
 
 #endif
